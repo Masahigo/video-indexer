@@ -1,0 +1,6 @@
+controller:
+    podAnnotations:
+      dapr.io/enabled: "true"
+      dapr.io/id: "nginx-ingress"
+      dapr.io/port: "80"
+      dapr.io/log-level: "debug"

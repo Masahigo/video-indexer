@@ -1,0 +1,25 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# Secrets here
+**/.env
+
+# Certs
+*.pfx
+
+# Discard test data for now
+SampleData/
+
+# Discard only files containing secrets
+components/cosmosdb_binding.yaml
+components/eventgrid_binding.yaml
+deploy/azurekeyvault.yaml

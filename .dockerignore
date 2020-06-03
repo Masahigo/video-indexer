@@ -1,0 +1,18 @@
+# .dockerignore
+
+Dockerfile*
+docker-compose*
+.dockerignore
+README.md
+LICENSE
+.env
+.git
+.gitignore
+.vs
+.vscode
+deploy\
+bin\
+obj\
+Properties\
+SampleData\
+*.pfx

@@ -1,0 +1,34 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: eventgrid-input-k8s
+  namespace: default
+spec:
+  type: bindings.azure.eventgrid
+  metadata:
+  - name: tenantId
+    secretKeyRef:
+      name: tenantId
+      key: tenantId
+  - name: subscriptionId
+    secretKeyRef:
+      name: subscriptionId
+      key: subscriptionId
+  - name: clientId
+    secretKeyRef:
+      name: clientId
+      key: clientId
+  - name: clientSecret
+    secretKeyRef:
+      name: clientSecret
+      key: clientSecret
+  - name: subscriberEndpoint
+    value: "https://dapr-k8s.dev.msdevopsdude.com/api/events"
+  - name: handshakePort
+    value: "9000"
+  - name: scope
+    secretKeyRef:
+      name: scope
+      key: scope
+auth:
+    secretStore: azurekeyvault

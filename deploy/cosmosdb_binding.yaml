@@ -1,0 +1,24 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: cosmosdb-output
+  namespace: default
+spec:
+  type: bindings.azure.cosmosdb
+  metadata:
+  - name: url
+    secretKeyRef:
+      name: url
+      key: url
+  - name: masterKey
+    secretKeyRef:
+      name: masterKey
+      key: masterKey
+  - name: database
+    value: myDatabase
+  - name: collection
+    value: VideoIndexes
+  - name: partitionKey
+    value: id
+auth:
+    secretStore: azurekeyvault
