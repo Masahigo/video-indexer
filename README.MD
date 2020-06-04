@@ -6,25 +6,53 @@ Refer to [Dapr's documentation](https://github.com/dapr/docs/blob/master/getting
 
 - Open PowerShell as Administrator and run: 
 
+```powershell
     powershell -Command "iwr -useb https://raw.githubusercontent.com/dapr/cli/master/install/install.ps1 | iex"
+```
 
 - Open Command Prompt as Administrator and run:
 
+```cmd
     dapr init
+```
 
 - Check Dapr runtime containers:
 
+```cmd
     docker ps
 
-```PowerShell
     CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                     NAMES
     523eed39c32d        daprio/dapr         "./placement"            8 hours ago         Up 29 minutes       0.0.0.0:6050->50005/tcp   dapr_placement
     7f9c30b58968        redis               "docker-entrypoint.s…"   8 hours ago         Up 29 minutes       0.0.0.0:6379->6379/tcp    dapr_redis
 ```
 
+- [Get Ngrok](https://ngrok.com/download)
+
+- Run Ngrok with following command
+
+```
+    ngrok http -host-header=localhost 9000
+```
+
+- Configure your event grid binding (eg. `/components/eventgrid.yaml`) with [required metadata](https://github.com/dapr/docs/blob/master/reference/specs/bindings/eventgrid.md), using the HTTPS endpoint from _ngrok_ for `subscriberEndpoint`
+
+```yaml
+..
+spec
+  - name: subscriberEndpoint
+    value: "https://xxx.ngrok.io/api/events"    
+  - name: handshakePort
+    value: 9000
+  ..
+```
+
+- Configure your cosmosdb binding (eg. `/components/cosmosdb.yaml`) with [required metadata](https://github.com/dapr/docs/blob/master/reference/specs/bindings/cosmosdb.md)
+
 - [Start application with Dapr](https://github.com/dapr/docs/blob/master/walkthroughs/darprun.md)
 
+```
     dapr run --app-id video-indexer --app-port 5000 --port 3500 dotnet run
+```
 
 ## Steps to deploy to Kubernetes
 
