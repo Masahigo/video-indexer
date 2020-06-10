@@ -160,16 +160,48 @@ secret-video-indexer-api-key   video-indexer-we-kv   videoIndexerApiKey
 10) Deploy Dapr components
 
 ```bash
-kubectl apply -f ./deploy/azurekeyvault.yaml
-kubectl apply -f ./deploy/redis.yaml
-kubectl apply -f ./deploy/eventgrid_binding.yaml
-kubectl apply -f ./deploy/cosmosdb_binding.yaml
+$ kubectl apply -f ./deploy/azurekeyvault.yaml
+$ kubectl apply -f ./deploy/redis.yaml
+$ kubectl apply -f ./deploy/eventgrid_binding.yaml
+$ kubectl apply -f ./deploy/cosmosdb_binding.yaml
 ```
 
-11) Deploy app and ingress
+11) Deploy app and ingress + verify that the app works
 
 ```bash
-kubectl apply -f ./deploy/dotnetwebapi.yaml
+$ kubectl apply -f ./deploy/dotnetwebapi.yaml
+$ kubectl get pods -l app=dotnetwebapi
+NAME                                                   READY   STATUS            RESTARTS   AGE
+video-indexer-6cb78f555c-j8vpv                         0/2     PodInitializing   0          4s
+
+$ kubectl logs video-indexer-6cb78f555c-j8vpv webapi
+time="2020-06-10T06:32:34Z" level=info msg="found original container command to be /usr/bin/dotnet [dotnet VideoIndexerApi.dll]" application=env-injector component=akv2k8s custom_auth=false namespace=default
+time="2020-06-10T06:32:34Z" level=info msg="secret clientId injected into evn var AZURE_CLIENT_ID for executable /usr/bin/dotnet" application=env-injector component=akv2k8s custom_auth=false namespace=default
+time="2020-06-10T06:32:35Z" level=info msg="secret clientSecret injected into evn var AZURE_CLIENT_SECRET for executable /usr/bin/dotnet" application=env-injector component=akv2k8s custom_auth=false namespace=default
+time="2020-06-10T06:32:35Z" level=info msg="secret videoIndexerApiKey injected into evn var VIDEO_INDEXER_API_KEY for executable /usr/bin/dotnet" application=env-injector component=akv2k8s custom_auth=false namespace=default
+time="2020-06-10T06:32:35Z" level=info msg="secret azureStorageAccountName injected into evn var AZURE_STORAGE_ACCOUNT_NAME for executable /usr/bin/dotnet" application=env-injector component=akv2k8s custom_auth=false namespace=default
+time="2020-06-10T06:32:35Z" level=info msg="secret tenantId injected into evn var AZURE_TENANT_ID for executable /usr/bin/dotnet" application=env-injector component=akv2k8s custom_auth=false namespace=default
+time="2020-06-10T06:32:35Z" level=info msg="starting process /usr/bin/dotnet [dotnet VideoIndexerApi.dll] with secrets in env vars" application=env-injector component=akv2k8s custom_auth=false namespace=default
+info: VideoIndexerApi.Services.QueuedHostedService[0]
+      Queued Hosted Service is running.
+
+      Tap W to add a work item to the background queue.
+
+info: Microsoft.Hosting.Lifetime[0]
+      Now listening on: http://0.0.0.0:5000
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /app
+info: VideoIndexerApi.HealthChecks.LivenessHealthCheck[0]
+      LivenessHealthCheck executed.
+info: VideoIndexerApi.HealthChecks.ReadinessHealthCheck[0]
+      Readiness health check executed.
+info: VideoIndexerApi.HealthChecks.ReadinessHealthCheck[0]
+      Connection to video indexer API is working.
+
 ```
 
 12) Check Nginx controller logs and restart pod if needed (https://kubernetes.github.io/ingress-nginx/troubleshooting/)
