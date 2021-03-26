@@ -38,7 +38,7 @@ namespace VideoIndexerApi
         {
             if (env.IsDevelopment())
             {
-                DotEnv.Config();
+                DotEnv.Load();
                 app.UseDeveloperExceptionPage();
             }
 

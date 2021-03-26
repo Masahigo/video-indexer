@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using VideoIndexerApi.Models;
 
 namespace VideoIndexerApi.HealthChecks
@@ -66,7 +66,7 @@ namespace VideoIndexerApi.HealthChecks
             {
                 HttpResponseMessage result = await client.GetAsync($"{apiUrl}/auth/trial/Accounts?{queryParams}");
                 var json = await result.Content.ReadAsStringAsync();
-                var accounts = JsonConvert.DeserializeObject<AccountContractSlim[]>(json);
+                var accounts = JsonSerializer.Deserialize<AccountContractSlim[]>(json);
                 var accountInfo = accounts.First();
 
                 return !string.IsNullOrEmpty(accountInfo.AccessToken);
