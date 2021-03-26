@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VideoIndexerApi.Models;
 using System;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using System.Text;
@@ -17,6 +15,7 @@ using Azure.Storage.Blobs.Models;
 using System.Net.Http;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace VideoIndexerApi.Controllers
 {
@@ -74,8 +73,8 @@ namespace VideoIndexerApi.Controllers
 
         private async Task<IActionResult> HandleCloudEvent(string jsonContent)
         {
-            var details = JsonConvert.DeserializeObject<CloudEvent<dynamic>>(jsonContent);
-            var eventData = JObject.Parse(jsonContent);
+            var details = JsonSerializer.Deserialize<CloudEvent<dynamic>>(jsonContent);
+            var eventData = JsonDocument.Parse(jsonContent);
 
             if (details.Type == "Microsoft.Storage.BlobCreated" &&
                details.Subject.StartsWith("/blobServices/default/containers"))
@@ -110,9 +109,10 @@ namespace VideoIndexerApi.Controllers
                 var videoIndexState = await this._daprClient.GetStateEntryAsync<string>(StateKey, stateStoreKey);
 
                 // Attempt to read one JSON object. 
-                var partialVideoIndex = JsonConvert.DeserializeObject<VideoIndex<dynamic>>(videoIndexState.Value);
+                var partialVideoIndex = JsonSerializer.Deserialize<VideoIndex<dynamic>>(videoIndexState.Value);
 
-                JObject o = JObject.FromObject(new
+                // TODO: Missing API function in System.Text.Json
+                var jsonContent = JsonSerializer.Serialize(new
                 {
                     data = new
                     {
@@ -126,7 +126,22 @@ namespace VideoIndexerApi.Controllers
                 }
                 );
 
-                var jsonContent = JsonConvert.SerializeObject(o);
+                /* JObject o = JObject.FromObject(new
+                {
+                    data = new
+                    {
+                        key = "id",
+                        id = partialVideoIndex.VideoId,
+                        name = partialVideoIndex.Name,
+                        created = partialVideoIndex.Created,
+                        duration = partialVideoIndex.DurationInSeconds,
+                        summary = partialVideoIndex.Summary
+                    }
+                }
+                ); */
+
+                //var jsonContent = JsonSerializer.Serialize(o);
+
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 var dapr_port = _configuration["DAPR_HTTP_PORT"];
 
@@ -216,7 +231,7 @@ namespace VideoIndexerApi.Controllers
                 });
             HttpResponseMessage result = await client.GetAsync($"{apiUrl}/auth/trial/Accounts?{queryParams}");
             var json = await result.Content.ReadAsStringAsync();
-            var accounts = JsonConvert.DeserializeObject<AccountContractSlim[]>(json);
+            var accounts = JsonSerializer.Deserialize<AccountContractSlim[]>(json);
 
             // take the relevant account, here we simply take the first, 
             // you can also get the account via accounts.First(account => account.Id == <GUID>);
@@ -259,7 +274,7 @@ namespace VideoIndexerApi.Controllers
                 });
             HttpResponseMessage result = await client.GetAsync($"{apiUrl}/auth/trial/Accounts?{queryParams}");
             var json = await result.Content.ReadAsStringAsync();
-            var accounts = JsonConvert.DeserializeObject<AccountContractSlim[]>(json);
+            var accounts = JsonSerializer.Deserialize<AccountContractSlim[]>(json);
 
             // take the relevant account, here we simply take the first, 
             // you can also get the account via accounts.First(account => account.Id == <GUID>);
@@ -288,7 +303,7 @@ namespace VideoIndexerApi.Controllers
             var uploadResult = await uploadRequestResult.Content.ReadAsStringAsync();
 
             // get the video ID from the upload result
-            string videoId = JsonConvert.DeserializeObject<dynamic>(uploadResult)["id"];
+            string videoId = JsonSerializer.Deserialize<dynamic>(uploadResult)["id"];
             Console.WriteLine("Uploaded");
             Console.WriteLine("Video ID:");
             Console.WriteLine(videoId);
@@ -308,7 +323,7 @@ namespace VideoIndexerApi.Controllers
                 var videoGetIndexRequestResult = await client.GetAsync($"{apiUrl}/{accountInfo.Location}/Accounts/{accountInfo.Id}/Videos/{videoId}/Index?{queryParams}");
                 var videoGetIndexResult = await videoGetIndexRequestResult.Content.ReadAsStringAsync();
 
-                string processingState = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["state"];
+                string processingState = JsonSerializer.Deserialize<dynamic>(videoGetIndexResult)["state"];
 
                 Console.WriteLine("");
                 Console.WriteLine("State:");
@@ -319,8 +334,8 @@ namespace VideoIndexerApi.Controllers
                 {
                     if (processingState == "Failed")
                     {
-                        string failureCode = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["failureCode"];
-                        string failureMessage = JsonConvert.DeserializeObject<dynamic>(videoGetIndexResult)["failureMessage"];
+                        string failureCode = JsonSerializer.Deserialize<dynamic>(videoGetIndexResult)["failureCode"];
+                        string failureMessage = JsonSerializer.Deserialize<dynamic>(videoGetIndexResult)["failureMessage"];
                         Console.WriteLine("Indexing failed!");
                         Console.WriteLine("failureCode: " + failureCode);
                         Console.WriteLine("failureMessage: " + failureMessage);
@@ -384,10 +399,11 @@ namespace VideoIndexerApi.Controllers
             try
             {
                 // Attempt to read one JSON object. 
-                var eventData = JObject.Parse(jsonContent);
+                var eventData = JsonDocument.Parse(jsonContent);
 
                 // Check for the spec version property.
-                var version = eventData["specversion"].Value<string>();
+                var version = eventData.RootElement.GetProperty("specversion").GetString();
+                // var version = eventData["specversion"].Value<string>();
                 if (!string.IsNullOrEmpty(version)) return true;
             }
             catch (Exception e)

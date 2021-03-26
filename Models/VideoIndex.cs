@@ -1,22 +1,22 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace VideoIndexerApi.Models
 {
     public class VideoIndex<T> where T : class
     {
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public string VideoId { get; set; }
 
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty("created")]
+        [JsonPropertyName("created")]
         public string Created { get; set; }
 
-       [JsonProperty("durationInSeconds")]
+       [JsonPropertyName("durationInSeconds")]
        public int DurationInSeconds { get; set; }
 
-       [JsonProperty("summarizedInsights")]
+       [JsonPropertyName("summarizedInsights")]
        public T Summary { get; set; }
     }
 }
